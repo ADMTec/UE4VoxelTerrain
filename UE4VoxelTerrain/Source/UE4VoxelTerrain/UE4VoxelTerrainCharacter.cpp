@@ -6,72 +6,85 @@
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "Runtime/Engine/Classes/Components/DecalComponent.h"
 #include "DrawDebugHelpers.h"
+#include "SandboxTerrainController.h"
+#include "UE4VoxelTerrainPlayerController.h"
+#include "VoxelDualContouringMeshComponent.h"
 
-AUE4VoxelTerrainCharacter::AUE4VoxelTerrainCharacter()
-{
-	// Set size for player capsule
-	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+#include <cmath>
 
-	// Don't rotate character to camera direction
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
+AUE4VoxelTerrainCharacter::AUE4VoxelTerrainCharacter() {
 
 
-	//GetMesh()->AttachParent = RootComponent;
-
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->AttachTo(RootComponent);
-
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-
-	view = PlayerView::TOP_DOWN;
-	initTopDownView();
-
-	// Create a decal in the world to show the cursor's location
-	//CursorToWorld = CreateDefaultSubobject<UDecalComponent>("CursorToWorld");
-	//CursorToWorld->AttachTo(RootComponent);
-	//static ConstructorHelpers::FObjectFinder<UMaterial> DecalMaterialAsset(TEXT("Material'/Game/TopDownCPP/Blueprints/M_Cursor_Decal.M_Cursor_Decal'"));
-	//if (DecalMaterialAsset.Succeeded())
-	//{
-	//	CursorToWorld->SetDecalMaterial(DecalMaterialAsset.Object);
-	//}
-	//CursorToWorld->DecalSize = FVector(16.0f, 32.0f, 32.0f);
-	//CursorToWorld->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
-
-	// Activate ticking in order to update the cursor every frame.
-	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.bStartWithTickEnabled = true;
 }
 
-void AUE4VoxelTerrainCharacter::Tick(float DeltaSeconds)
-{
-	if (view != PlayerView::TOP_DOWN) {
-		return;
-	}
+void AUE4VoxelTerrainCharacter::Tick(float DeltaSeconds) {
+	Super::Tick(DeltaSeconds);
 
 	//if (CursorToWorld != nullptr)
 	{
-		if (APlayerController* PC = Cast<APlayerController>(GetController()))
-		{
-			FHitResult TraceHitResult;
-			PC->GetHitResultUnderCursor(ECC_Visibility, true, TraceHitResult);
-			FVector CursorFV = TraceHitResult.ImpactNormal;
-			FRotator CursorR = CursorFV.Rotation();
-			//CursorToWorld->SetWorldLocation(TraceHitResult.Location);
-			//CursorToWorld->SetWorldRotation(CursorR);
+		if (AUE4VoxelTerrainPlayerController* PC = Cast<AUE4VoxelTerrainPlayerController>(GetController())) {
+			FHitResult TraceHitResult = PC->TracePlayerActionPoint();
 
-			AUE4VoxelTerrainPlayerController* controller = Cast<AUE4VoxelTerrainPlayerController>(GetController());
-
-			if (controller -> tool_mode == 1) {
-				DrawDebugSphere(GetWorld(), TraceHitResult.Location, 80, 24, FColor(255, 255, 255, 100));
+			if (!TraceHitResult.bBlockingHit) {
+				return;
 			}
 
-			if (controller->tool_mode == 2) {
-				DrawDebugBox(GetWorld(), TraceHitResult.Location, FVector(105), FColor(255, 255, 255, 100));
+			ASandboxTerrainController* TerrainController = Cast<ASandboxTerrainController>(TraceHitResult.Actor.Get());
+
+			UVoxelDualContouringMeshComponent* DualContouringVoxelMesh = Cast<UVoxelDualContouringMeshComponent>(TraceHitResult.Component.Get());
+			if (DualContouringVoxelMesh != nullptr) {
+				AUE4VoxelTerrainPlayerController* controller = Cast<AUE4VoxelTerrainPlayerController>(GetController());
+				if (controller->tool_mode == 1) {
+					DrawDebugSphere(GetWorld(), TraceHitResult.Location, 80, 24, FColor(255, 255, 255, 100));
+				}
 			}
 
+			if (TerrainController != nullptr) {
+				AUE4VoxelTerrainPlayerController* controller = Cast<AUE4VoxelTerrainPlayerController>(GetController());
 
+				if (controller->tool_mode == 1) {
+					DrawDebugSphere(GetWorld(), TraceHitResult.Location, 80, 24, FColor(255, 255, 255, 100));
+				}
+
+				if (controller->tool_mode == 2) {
+					DrawDebugBox(GetWorld(), TraceHitResult.Location, FVector(105), FColor(255, 255, 255, 100));
+				}
+
+				if (controller->tool_mode == 3) {
+					static const float GridRange = 100;
+					FVector Tmp(TraceHitResult.Location);
+					Tmp /= GridRange;
+					Tmp.Set(std::round(Tmp.X), std::round(Tmp.Y), std::round(Tmp.Z));
+					Tmp *= GridRange;
+					FVector Position((int)Tmp.X, (int)Tmp.Y, (int)Tmp.Z);
+
+					DrawDebugBox(GetWorld(), Position, FVector(100), FColor(255, 255, 255, 100));
+				}
+
+				if (controller->tool_mode == 4) {
+					DrawDebugSphere(GetWorld(), TraceHitResult.Location, 60, 24, FColor(100, 255, 255, 100));
+				}
+
+				if (controller->tool_mode == 5) {
+					DrawDebugSphere(GetWorld(), TraceHitResult.Location, 60, 24, FColor(255, 255, 100, 100));
+				}
+
+				if (controller->tool_mode == 6) {
+					DrawDebugSphere(GetWorld(), TraceHitResult.Location, 60, 24, FColor(255, 100, 255, 100));
+				}
+
+				if (controller->tool_mode == 7) {
+					static const float GridRange = 100;
+					FVector Tmp(TraceHitResult.Location);
+					Tmp /= GridRange;
+					Tmp.Set(std::round(Tmp.X), std::round(Tmp.Y), std::floor(Tmp.Z));
+					Tmp *= GridRange;
+					FVector Position((int)Tmp.X, (int)Tmp.Y, ((int)Tmp.Z) + GridRange);
+
+					DrawDebugBox(GetWorld(), Position, FVector(50), FColor(100, 100, 100, 100));
+				}
+			}
 		}
 	}
 }
+

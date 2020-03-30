@@ -1,11 +1,12 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
 #pragma once
 #include "GameFramework/PlayerController.h"
+#include "SandboxPlayerController.h"
 #include "UE4VoxelTerrainPlayerController.generated.h"
 
 
 UCLASS()
-class AUE4VoxelTerrainPlayerController : public APlayerController
+class AUE4VoxelTerrainPlayerController : public ASandboxPlayerController
 {
 	GENERATED_BODY()
 
@@ -13,40 +14,46 @@ public:
 	AUE4VoxelTerrainPlayerController();
 
 protected:
-	/** True if the controlled character should navigate to the mouse cursor. */
-	uint32 bMoveToMouseCursor : 1;
 
-	// Begin PlayerController interface
 	virtual void PlayerTick(float DeltaTime) override;
+
 	virtual void SetupInputComponent() override;
-	// End PlayerController interface
 
-	/** Navigate player to the current mouse cursor location. */
-	void MoveToMouseCursor();
+	virtual void OnMainActionPressed();
 
-	/** Navigate player to the current touch location. */
-	void MoveToTouchLocation(const ETouchIndex::Type FingerIndex, const FVector Location);
-	
-	/** Navigate player to the given world location. */
-	void SetNewMoveDestination(const FVector DestLocation);
+	virtual void OnMainActionReleased();
 
-	/** Input handlers for SetDestination action. */
-	void OnSetDestinationPressed();
-	void OnSetDestinationReleased();
+	virtual void OnAltActionPressed();
 
-	// ==========================================================================================================
+	virtual void OnAltActionReleased();
+
+	void PerformAction();
 
 public:
+
 	int tool_mode = 0;
 
+	FHitResult TracePlayerActionPoint();
+
 private:
-	void test();
+
+	FTimerHandle timer;
+
+	void setTool0();
 	
 	void setTool1();
 
 	void setTool2();
 
-	void ToggleView();
+	void setTool3();
+
+	void setTool4();
+
+	void setTool5();
+
+	void setTool6();
+
+	void setTool7();
 
 };
 
