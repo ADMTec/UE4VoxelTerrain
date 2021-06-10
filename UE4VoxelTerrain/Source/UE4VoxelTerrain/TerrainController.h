@@ -3,6 +3,7 @@
 #pragma once
 
 #include "SandboxTerrainController.h"
+#include "LevelController.h"
 #include "TerrainController.generated.h"
 
 /**
@@ -16,10 +17,33 @@ class UE4VOXELTERRAIN_API ATerrainController : public ASandboxTerrainController
 	
 public:
 
-	int32 ZoneLoaderConter = 0;
-	int32 ZoneLoaderTotal = 0;
+	UPROPERTY(EditAnywhere, Category = "UnrealSandbox Debug")
+	bool bUseCUDAGenerator = false;
+
+	UPROPERTY(EditAnywhere, Category = "UnrealSandbox Toolkit")
+	ALevelController* LevelController;
+
+
+public:
+
+	virtual void BeginPlay() override;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
+	bool IsUseCuda();
+
+	void* CudaGenVdPtr = nullptr; //FIXME
 
 protected:
 
+	virtual TBaseTerrainGenerator* NewTerrainGenerator() override;
+
+	virtual void BatchGenerateNewVd(const TArray<TSpawnZoneParam>& GenerationList, TArray<TVoxelData*>& NewVdArray) override;
+
+	virtual void OnOverlapActorDuringTerrainEdit(const FHitResult& OverlapResult, const FVector& Pos) override;
+
+private:
+
+	void* CudaGenDllHandle = nullptr;
 
 };

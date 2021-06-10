@@ -2,6 +2,9 @@
 #pragma once
 #include "GameFramework/PlayerController.h"
 #include "SandboxPlayerController.h"
+#include "SandboxEnvironment.h"
+#include "LevelController.h"
+#include "TerrainController.h"
 #include "UE4VoxelTerrainPlayerController.generated.h"
 
 
@@ -12,6 +15,11 @@ class AUE4VoxelTerrainPlayerController : public ASandboxPlayerController
 
 public:
 	AUE4VoxelTerrainPlayerController();
+
+	UFUNCTION(BlueprintCallable, Category = "Sandbox")
+	void ToggleToolMode();
+
+	virtual void BeginPlay() override;
 
 protected:
 
@@ -29,32 +37,29 @@ protected:
 
 	void PerformAction();
 
-public:
+	virtual void OnTracePlayerActionPoint(const FHitResult& Res) override;
 
-	int tool_mode = 0;
-
-	FHitResult TracePlayerActionPoint();
 
 private:
 
-	FTimerHandle timer;
+	UPROPERTY()
+	ASandboxEnvironment* SandboxEnvironment;
 
-	void setTool0();
-	
-	void setTool1();
+	UPROPERTY()
+	ALevelController* LevelController;
 
-	void setTool2();
+	UPROPERTY()
+	ATerrainController* TerrainController;
 
-	void setTool3();
 
-	void setTool4();
+	//bool bIsConstructionMode;
+	bool bPlaceCurrentObjectToWorld;
 
-	void setTool5();
+	FTimerHandle Timer;
 
-	void setTool6();
+	ASandboxObject* GetCurrentInventoryObject();
 
-	void setTool7();
-
+	FVector PrevLocation;
 };
 
 
