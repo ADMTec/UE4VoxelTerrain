@@ -67,7 +67,7 @@ void AMiningTool::OnAltAction(const FHitResult& Hit, ABaseCharacter* Owner) {
 		UVoxelMeshComponent* ZoneMesh = Cast<UVoxelMeshComponent>(Hit.Component.Get());
 		if (ZoneMesh) {
 			uint16 MatId = ZoneMesh->GetMaterialIdFromCollisionFaceIndex(Hit.FaceIndex);
-			//UE_LOG(LogTemp, Warning, TEXT("MatId -> %d"), MatId);
+			//UE_LOG(LogSandboxTerrain, Log, TEXT("MatId -> %d"), MatId);
 
 			if (MatId > 0) {
 				FSandboxTerrainMaterial MatInfo;
@@ -77,7 +77,8 @@ void AMiningTool::OnAltAction(const FHitResult& Hit, ABaseCharacter* Owner) {
 			}
 		}
 
-		UE_LOG(LogTemp, Warning, TEXT("zIndex -> %f %f %f"), ZoneIndexTmp.X, ZoneIndexTmp.Y, ZoneIndexTmp.Z);
+		//UE_LOG(LogTemp, Log, TEXT("Test -> %f %f %f"), Hit.Location.X, Hit.Location.Y, Hit.Location.Z);
+		UE_LOG(LogTemp, Log, TEXT("ZoneIndex -> %f %f %f"), ZoneIndexTmp.X, ZoneIndexTmp.Y, ZoneIndexTmp.Z);
 
 		if (DiggingToolMode == 0) {
 			Terrain->DigTerrainRoundHole(Hit.ImpactPoint, 80, 5);
@@ -167,7 +168,7 @@ void AMiningTool::OnTracePlayerActionPoint(const FHitResult& Res, ABaseCharacter
 		}
 
 		if (DiggingToolMode == 2) {
-			DrawDebugSphere(World, Res.Location, 60, 24, FColor(100, 255, 255, 100));
+			DrawDebugSphere(World, Res.Location, 60, 24, FColor(100, 255, 0, 100));
 		}
 
 		if (DiggingToolMode == 3) {

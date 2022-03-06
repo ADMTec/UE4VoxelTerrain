@@ -21,7 +21,7 @@ void ATerrainGenerator::StartBuildingTerrain() {
 		const uint32 Total = (AreaRadius * 2 + 1) * (AreaRadius * 2 + 1) * (-TerrainSizeMinZ + TerrainSizeMaxZ + 1);
 		auto List = MakeChunkListByAreaSize(AreaRadius);
 
-		UE_LOG(LogTemp, Warning, TEXT("Total chunks: %d"), TotalChunks);
+		UE_LOG(LogTemp, Log, TEXT("Total chunks: %d"), TotalChunks);
 		GEngine->AddOnScreenDebugMessage(-1, MessageTime, FColor::Silver, FString::Printf(TEXT("Total chunks: %d"), TotalChunks));
 
 		TArray<TVoxelIndex> NewVdGenList;
@@ -36,8 +36,8 @@ void ATerrainGenerator::StartBuildingTerrain() {
 		}
 
 		const int MaxBatchCount = FGenericPlatformMath::CeilToInt((float)NewVdGenList.Num() / (float)this->BatchSize);
-		UE_LOG(LogTemp, Warning, TEXT("NewVdGenerationList: %d"), NewVdGenList.Num());
-		UE_LOG(LogTemp, Warning, TEXT("Batches: %d, BatchSize: %d"), MaxBatchCount, this->BatchSize);
+		UE_LOG(LogTemp, Log, TEXT("NewVdGenerationList: %d"), NewVdGenList.Num());
+		UE_LOG(LogTemp, Log, TEXT("Batches: %d, BatchSize: %d"), MaxBatchCount, this->BatchSize);
 
 		RunThread([=]() {
 			const unsigned int T = NewVdGenList.Num();
@@ -60,36 +60,35 @@ void ATerrainGenerator::StartBuildingTerrain() {
 				if ((Idx > 0 && Idx % BatchSize == 0) || (Idx == T-1)) {
 					double Start = FPlatformTime::Seconds();
 
-					GEngine->AddOnScreenDebugMessage(-1, MessageTime, FColor::Silver, FString::Printf(TEXT("%d / %d"), IdxB, MaxBatchCount));
-					UE_LOG(LogTemp, Warning, TEXT("batch %d / %d"), IdxB, MaxBatchCount);
+					//GEngine->AddOnScreenDebugMessage(-1, MessageTime, FColor::Silver, FString::Printf(TEXT("%d / %d"), IdxB, MaxBatchCount));
+					//UE_LOG(LogTemp, Log, TEXT("batch %d / %d"), IdxB, MaxBatchCount);
 
 
-					TArray<TVoxelData*> NewVdArray;
-					BatchGenerateNewVd(NewVdBatchList, NewVdArray);
+					TArray<TGenerateZoneResult> NewVdArray;
+					//BatchGenerateNewVd(NewVdBatchList, NewVdArray);
+					GetTerrainGenerator()->BatchGenerateVoxelTerrain(NewVdBatchList, NewVdArray);
 
 					double End = FPlatformTime::Seconds();
 					double Time = (End - Start) * 1000;
-					UE_LOG(LogTemp, Warning, TEXT("batch generation ----> %f ms"), Time);
+					//UE_LOG(LogTemp, Log, TEXT("batch generation ----> %f ms"), Time);
 
-					GEngine->AddOnScreenDebugMessage(-1, MessageTime, FColor::Silver, FString::Printf(TEXT("Save terrain...")));
+					//GEngine->AddOnScreenDebugMessage(-1, MessageTime, FColor::Silver, FString::Printf(TEXT("Save terrain...")));
 
 					int Idx2 = 0;
 					double Start2 = FPlatformTime::Seconds();
+					/*
 					for (TVoxelData* Vd : NewVdArray) {
 						const TVoxelIndex& ZoneIndex = NewVdBatchList[Idx2].Index;
 						TInstanceMeshTypeMap ObjectMap;
 
+						TMeshDataPtr Md = nullptr;
+						//if (Vd->getDensityFillState() == TVoxelDataFillState::MIXED) {
+							//TInstanceMeshTypeMap ObjectMap;						
+							//Md = GenerateMesh(Vd);
+							//GetTerrainGenerator()->GenerateInstanceObjects(ZoneIndex, Vd, ObjectMap);
+						//}
 
-						if (Vd->getDensityFillState() == TVoxelDataFillState::MIXED) {
-							TInstanceMeshTypeMap ObjectMap;						
-							TMeshDataPtr Md = GenerateMesh(Vd);
-							GetTerrainGenerator()->GenerateInstanceObjects(ZoneIndex, Vd, ObjectMap);
-
-							ForceSaveMd(ZoneIndex, Md);
-							ForceSaveObj(ZoneIndex, ObjectMap);
-						}
-
-						ForceSaveVd(ZoneIndex, Vd);
+						ForceSave(ZoneIndex, Vd, Md, ObjectMap);
 						delete Vd;
 
 						ProgressGenerationPipeline(FinishedZonesCount, T);
@@ -97,12 +96,13 @@ void ATerrainGenerator::StartBuildingTerrain() {
 						Idx2++;
 						FinishedZonesCount++;
 					}
+					*/
 
 					double End2 = FPlatformTime::Seconds();
 					double Time2 = (End2 - Start2) * 1000;
-					UE_LOG(LogTemp, Warning, TEXT("test ----> %f ms"), Time2);
+					//UE_LOG(LogTemp, Log, TEXT(" ----> %f ms"), Time2);
 
-					GetTerrainGenerator()->Clean();
+					//GetTerrainGenerator()->Clean(); // TODO generator
 					NewVdBatchList.Empty();
 					IdxB++;
 				}
@@ -110,7 +110,7 @@ void ATerrainGenerator::StartBuildingTerrain() {
 				Idx++;
 			}
 
-			UE_LOG(LogTemp, Warning, TEXT("FINISH"));
+			UE_LOG(LogTemp, Log, TEXT("FINISH"));
 			FinishGenerationPipeline();
 		});
 	}

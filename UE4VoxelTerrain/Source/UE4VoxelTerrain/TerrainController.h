@@ -6,6 +6,12 @@
 #include "LevelController.h"
 #include "TerrainController.generated.h"
 
+
+struct TVdGenBlock;
+
+typedef int(*PCudaGetInfo)();
+typedef int(*PCudaGenerateVd)(TVdGenBlock*);
+
 /**
  * 
  */
@@ -23,6 +29,15 @@ public:
 	UPROPERTY(EditAnywhere, Category = "UnrealSandbox Toolkit")
 	ALevelController* LevelController;
 
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "On Progress Save Voxel Terrain"))
+	void OnProgressSaveTerrain(float Progress);
+
+	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "On Finish Save Voxel Terrain"))
+	void OnFinishSaveTerrain();
+
+	UFUNCTION(BlueprintCallable, Category = "UnrealSandbox")
+	void ShutdownAndSaveMap();
+
 
 public:
 
@@ -36,9 +51,7 @@ public:
 
 protected:
 
-	virtual TBaseTerrainGenerator* NewTerrainGenerator() override;
-
-	virtual void BatchGenerateNewVd(const TArray<TSpawnZoneParam>& GenerationList, TArray<TVoxelData*>& NewVdArray) override;
+	virtual UTerrainGeneratorComponent* NewTerrainGenerator() override;
 
 	virtual void OnOverlapActorDuringTerrainEdit(const FHitResult& OverlapResult, const FVector& Pos) override;
 
